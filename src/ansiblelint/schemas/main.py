@@ -55,7 +55,12 @@ def validate_file_schema(file: Lintable) -> list[str]:
             return []
         if error.context:
             error = find_best_deep_match(error)
-        message = f"{error.json_path} {error.message}"
+        # determine if we want to use our own messages embedded into schemas inside title/markdownDescription fields
+        if "not" in error.schema and len(error.schema["not"]) == 0:
+            message = error.schema["title"]
+            schema = error.schema
+        else:
+            message = f"{error.json_path} {error.message}"
 
         documentation_url = ""
         for k in ("description", "markdownDescription"):
