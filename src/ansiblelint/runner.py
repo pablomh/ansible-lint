@@ -372,6 +372,7 @@ class Runner:
             filename = lintable
             lineno = 1
             column = None
+            ignore_rc = False
 
             stderr = strip_ansi_escape(run.stderr)
             stdout = strip_ansi_escape(run.stdout)
@@ -396,6 +397,14 @@ class Runner:
                     else:
                         filename = lintable
                     column = int(groups.get("column", 1))
+
+                    if (
+                        pattern.tag == "specific"
+                        and "couldn't resolve module/action" in title
+                        and app.options.nodeps
+                    ):
+                        ignore_rc = True
+                        continue
                     results.append(
                         MatchError(
                             message=title,
@@ -408,7 +417,7 @@ class Runner:
                         ),
                     )
 
-            if not results:
+            if not results and not ignore_rc:
                 rule = self.rules["internal-error"]
                 message = (
                     f"Unexpected error code {run.returncode} from "
